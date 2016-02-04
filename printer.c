@@ -6,7 +6,7 @@
 /* DON'T TOUCH THE ABOVE CONFIGURATION */
 
 #include "constants.h"
-#include "ascii.c"
+#include "letters.h"
 #include "motor.c"
 
 // Constants
@@ -14,6 +14,7 @@
 #define MoveMotor motorC
 const float LiftGear = 8/3.0;
 const float MoveGear = 24;
+const ubyte VectorSize = 25;
 
 void moveToOrigin();
 void moveToTop();
@@ -189,11 +190,11 @@ PRINT:
 }
 
 // Go through the vector, set bricks, and move conveyor after each row
-void writeLetter(char* letter, int size)
+void writeLetter(bool* letter)
 {
-	for(int i=0; i<size; i++)
+	for(int i=0; i<VectorSize; i++)
 	{
-		nxtDisplayTextLine(2,"Index: %d", i);
+		nxtDisplayTextLine(7,"Index: %d", i);
 		// move the conveyor
 		if (i!=0 && i%5==0){
 			sendMessageWithParm(CONVEYOR, CONVEYOR_MOVE, 1);
@@ -201,7 +202,7 @@ void writeLetter(char* letter, int size)
 			wait1Msec(500);
 		}
 
-		if (letter[i]=='1'){
+		if (letter[i]==1){
 			sendMessageWithParm(WEBSERVER, STT_PRINTING, i);
 			setBrick(4-i%5,0);
 			// Calibrate after each brick placement
@@ -246,23 +247,35 @@ void moveToTop(){
 	PlaySound(soundShortBlip);
 }
 
-//string x[25];
-//void showLetterMatrix(string letter){
-//	x = letter;
-//	for(int i=0; i<25; i+=5){
-//			nxtDisplayTextLine(i/5+2,"%s%s%s%s%s", x[i], x[i+1], x[i+2], x[i+3], x[i+4]);
-//	}
-//	return;
-//}
+
+void displayLetterMatrix(bool* x){
+	for(int i=0; i<VectorSize; i+=5){
+		nxtDisplayTextLine(i/5+2,"%d%d%d%d%d", x[i], x[i+1], x[i+2], x[i+3], x[i+4]);
+	}
+	return;
+}
+
+// Convert ASCII Code to vectorized representation of letters on a grid
+bool* ascii2Vector(ubyte asciiCode){
+	// 0-9 index starts from 0
+	if(asciiCode>=48 && asciiCode <= 57)
+		return vectors[asciiCode-48];
+
+	// A-Z index starts from 10
+	else if(asciiCode>=65 && asciiCode <= 90)
+		return vectors[asciiCode-55];
+
+	PlaySound(soundException);
+	PlaySound(soundException);
+	PlaySound(soundException);
+	return vectors[asciiCode-48];
+}
 
 void startPrint(int asciiCode){
-	const char* letter = vectorLetter(asciiCode);
-	// TODO Only accept range 48-57 65-90 for number and letters
-
-	//char* letter = "1000010101";
+	bool* vector = ascii2Vector(asciiCode);
 	nxtDisplayTextLine(1,"Printing: %d", asciiCode);
-	//showLetterMatrix(letter);
-	//writeLetter(letter, 25);
+	displayLetterMatrix(vector);
+	writeLetter(vector);
 }
 
 
@@ -274,7 +287,7 @@ task main()
 	moveToOrigin();
 	wait1Msec(500);
 
-	//startPrint(65);
+	//startPrint(48);
 
 	while(true){wait10Msec(100);}
 }

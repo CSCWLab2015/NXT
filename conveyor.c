@@ -24,10 +24,13 @@ task listenToBluetooth(){
 			switch(method){
 			case CONVEYOR_JOB_START:
 				nxtDisplayBigTextLine(2,"Job: %d", payload);
-				moveToPrinterAndSendJob(payload);
+				sendMessageWithParm(LOADER, LOADER_LOAD_PLATE , 0);
 				break;
 			case CONVEYOR_MOVE:
 				conveyor_move(payload);
+				break;
+			case CONVEYOR_PLATE_LOADED:
+				moveToPrinterAndSendJob(payload);
 				break;
 			default:
 				PlaySound(soundException);
