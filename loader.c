@@ -24,7 +24,7 @@ task listenToBluetooth(){
 		if(receiver != 0 || method	!= 0 || payload != 0){
 			PlaySound(soundBlip);
 			switch(method){
-			case WAREHOUSE_LOAD_PLATE:
+			case LOADER_LOAD_PLATE:
 				loadPlate();
 				break;
 			default:
