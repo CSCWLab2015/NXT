@@ -32,6 +32,7 @@ task listenToBluetooth(){
 			PlaySound(soundBlip);
 			switch(method){
 			case LOADER_LOAD_PLATE:
+				sendMessageWithParm(WEBSERVER, STT_LOADING, 0);
 				loadPlate();
 				break;
 			default:

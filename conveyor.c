@@ -32,6 +32,8 @@ task listenToBluetooth(){
 			switch(method){
 			case CONVEYOR_JOB_START:
 				nxtDisplayBigTextLine(2,"Job: %d", payload);
+				sendMessageWithParm(WEBSERVER, STT_JOB_STARTED, 0);
+				wait1Msec(500);
 				sendMessageWithParm(LOADER, LOADER_LOAD_PLATE , 0);
 				job = payload;
 				break;
@@ -39,11 +41,14 @@ task listenToBluetooth(){
 				conveyor_move(payload);
 				break;
 			case CONVEYOR_PLATE_LOADED:
-				nxtDisplayBigTextLine(4,"Send:%d", job);
+				nxtDisplayBigTextLine(4,"Sent:%d", job);
+				sendMessageWithParm(WEBSERVER, STT_MOVING_TO_PRINTER, 0);
 				moveToPrinterAndSendJob(job);
 				break;
 			case CONVEYOR_JOB_DONE:
+				sendMessageWithParm(WEBSERVER, STT_MOVING_TO_DELIVERY, 0);
 				unload();
+				sendMessageWithParm(WEBSERVER, STT_JOB_DONE, 0);
 				break;
 			default:
 				PlaySound(soundException);
@@ -74,6 +79,7 @@ const float Printer2Delivery = 28.5; // nipples
 void unload()
 {
 	driveNipple(Printer2Delivery, -20, TransportMotor);
+	sendMessageWithParm(WEBSERVER, STT_UNLOADING, 0);
 	int power = 3;
 	driveDegree(30, -power, UnloadMotor);
 	wait1Msec(200);
