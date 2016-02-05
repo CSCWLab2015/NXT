@@ -1,6 +1,7 @@
 #pragma config(Sensor, S1, touchOrigin, sensorTouch)
 #pragma config(Sensor, S2, touchOnTop, sensorTouch)
 #pragma config(Sensor, S3, colorSensor, sensorCOLORFULL)
+#pragma config(Sensor, S4, sonarSensor,  sensorSONAR)
 
 #include "constants.h"
 #include "motor.c"
@@ -120,6 +121,13 @@ void pushDown(){
 }
 
 void loadPlate(){
+	int distance_empty_plate=14;												//16; //distance for empty warehouse status
+   if(SensorValue[sonarSensor] >= distance_empty_plate)
+  {	return ;
+	}
+
+	else{
+
 	// Push a plate to the conveyor
 	driveGear(2,30,PushMotor, PushGear);
 	moveToOrigin();
@@ -134,7 +142,7 @@ void loadPlate(){
 	sendMessageWithParm(CONVEYOR, CONVEYOR_PLATE_LOADED, 0);
 	readBarcode();
 }
-
+}
 
 //Main Program
 task main()
