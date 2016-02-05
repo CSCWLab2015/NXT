@@ -1,6 +1,7 @@
 #pragma config(Sensor, S1, touchOrigin, sensorTouch)
 #pragma config(Sensor, S2, touchOnTop, sensorTouch)
 #pragma config(Sensor, S3, colorSensor, sensorCOLORFULL)
+//#pragma config(Sensor, S4, sonarSensor,  sensorSONAR)
 
 #include "constants.h"
 #include "motor.c"
@@ -13,6 +14,12 @@ const float PushGear = 24;
 
 void loadPlate();
 int * readBarcode();
+
+void clearInbox(){
+	// Clear the message inbox
+	for(int i=0; i<100; i++)
+		ClearMessage();
+}
 
 task listenToBluetooth(){
 	int receiver, method, payload;
@@ -43,19 +50,20 @@ int* readBarcode(){
 	int k=0;
 	int i=1;
 
-	while (i < 4 ) {
-		while ( SensorValue[colorSensor]!= REDCOLOR &&
-			SensorValue[colorSensor]!= BLUECOLOR &&
-		SensorValue[colorSensor]!= WHITECOLOR &&
-		SensorValue[colorSensor]!= YELLOWCOLOR &&
-		SensorValue[colorSensor]!= GREENCOLOR ) {
+	while (i < 4) {
+		while ( SensorValue[colorSensor]!=REDCOLOR &&
+			SensorValue[colorSensor]!=BLUECOLOR &&
+		SensorValue[colorSensor]!=WHITECOLOR &&
+		SensorValue[colorSensor]!=YELLOWCOLOR &&
+		SensorValue[colorSensor]!=GREENCOLOR ) {
 			// do nothing -- just wait for above colors
 		}
 
-		if (SensorValue [ colorSensor ]!=	 barCode[i-1] &&	SensorValue [ colorSensor ]!= BLACKCOLOR){
-			barCode[i]= SensorValue [ colorSensor ];
-			k = 10 * k + barCode[i];
-			i=i+1;
+		if (SensorValue[colorSensor]!=barCode[i-1] &&	SensorValue[colorSensor]!=BLACKCOLOR){
+				barCode[i]= SensorValue [ colorSensor ];
+				k = 10 * k + barCode[i];
+				i=i+1;
+				wait1Msec(50);
 		}
 	}
 	PlaySound(soundBeepBeep);
@@ -119,7 +127,25 @@ void pushDown(){
 	}
 }
 
+// Check whether there are enough plates
+//bool havePlate(){
+//	const int distance_empty_plate=14;												//16; //distance for empty warehouse status
+//	for(int c=0; c<5; c++){
+//		if(SensorValue[sonarSensor] < distance_empty_plate)
+//			return true;
+//		wait1Msec(100);
+//	}
+//	return false;
+//}
+
 void loadPlate(){
+	// Sonar sensor returns incorrect values due to specular effects
+	//if(!havePlate()){
+	//	sendMessageWithParm(WEBSERVER, ERR_NO_PLATES, SensorValue[sonarSensor]);
+	//	PlaySound(soundException);
+	//	return;
+	//}
+
 	// Push a plate to the conveyor
 	driveGear(2,30,PushMotor, PushGear);
 	moveToOrigin();
@@ -135,10 +161,10 @@ void loadPlate(){
 	readBarcode();
 }
 
-
 //Main Program
 task main()
 {
+	clearInbox();
 	StartTask(listenToBluetooth);
 	while(true){wait10Msec(100);}
 	return;
