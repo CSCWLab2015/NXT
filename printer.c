@@ -20,6 +20,12 @@ void moveToOrigin();
 void moveToTop();
 void startPrint(int asciiCode);
 
+void clearInbox(){
+	// Clear the message inbox
+	for(int i=0; i<100; i++)
+		ClearMessage();
+}
+
 task listenToBluetooth(){
 	int receiver, method, payload;
 	while(true)
@@ -257,18 +263,24 @@ void displayLetterMatrix(bool* x){
 
 // Convert ASCII Code to vectorized representation of letters on a grid
 bool* ascii2Vector(ubyte asciiCode){
+	bool* v = vectors;
 	// 0-9 index starts from 0
-	if(asciiCode>=48 && asciiCode <= 57)
-		return vectors[asciiCode-48];
-
+	if(asciiCode>=48 && asciiCode <= 57){
+		v += (asciiCode-48)*25;
+		return v;
+	}
 	// A-Z index starts from 10
-	else if(asciiCode>=65 && asciiCode <= 90)
-		return vectors[asciiCode-55];
+	else if(asciiCode>=65 && asciiCode <= 90){
+		v += (asciiCode-55)*25;
+		return v;
+	}
 
+	// Unsupported letter, Print X
 	PlaySound(soundException);
 	PlaySound(soundException);
 	PlaySound(soundException);
-	return vectors[asciiCode-48];
+	v += 33;
+	return v;
 }
 
 void startPrint(int asciiCode){
@@ -276,18 +288,20 @@ void startPrint(int asciiCode){
 	nxtDisplayTextLine(1,"Printing: %d", asciiCode);
 	displayLetterMatrix(vector);
 	writeLetter(vector);
+	sendMessageWithParm(CONVEYOR, CONVEYOR_JOB_DONE, 0);
 }
 
 
 task main()
 {
+	clearInbox();
 	StartTask(listenToBluetooth);
 
 	moveToTop();
 	moveToOrigin();
 	wait1Msec(500);
 
-	//startPrint(48);
+	//startPrint(65);
 
 	while(true){wait10Msec(100);}
 }

@@ -11,8 +11,16 @@
 
 void conveyor_move(int payload);
 void moveToPrinterAndSendJob(int letter);
+void unload();
+
+void clearInbox(){
+	// Clear the message inbox
+	for(int i=0; i<100; i++)
+		ClearMessage();
+}
 
 task listenToBluetooth(){
+	int job;
 	int receiver, method, payload;
 	while(true)
 	{
@@ -25,12 +33,17 @@ task listenToBluetooth(){
 			case CONVEYOR_JOB_START:
 				nxtDisplayBigTextLine(2,"Job: %d", payload);
 				sendMessageWithParm(LOADER, LOADER_LOAD_PLATE , 0);
+				job = payload;
 				break;
 			case CONVEYOR_MOVE:
 				conveyor_move(payload);
 				break;
 			case CONVEYOR_PLATE_LOADED:
-				moveToPrinterAndSendJob(payload);
+				nxtDisplayBigTextLine(4,"Send:%d", job);
+				moveToPrinterAndSendJob(job);
+				break;
+			case CONVEYOR_JOB_DONE:
+				unload();
 				break;
 			default:
 				PlaySound(soundException);
@@ -57,23 +70,14 @@ void moveToStock(){
 }
 
 // Unload the plate
-void unload(int power)
+const float Printer2Delivery = 28.5; // nipples
+void unload()
 {
-	nMotorEncoder[UnloadMotor] = 0;	 //clear the LEGO motor encoders
-	nMotorEncoderTarget[UnloadMotor] = 20; //set the target stoping position
-	motor[UnloadMotor] = -power;
-
-	while (nMotorRunState[UnloadMotor] != runStateIdle){}
-	motor[UnloadMotor] = 0; //turn motor off
-	wait1Msec(100);
-
-	// go back
-	nMotorEncoder[UnloadMotor] = 0;	 //clear the LEGO motor encoders
-	nMotorEncoderTarget[UnloadMotor] = 20; //set the target stoping position
-	motor[UnloadMotor] = power;
-
-	while (nMotorRunState[UnloadMotor] != runStateIdle){}
-	motor[UnloadMotor] = 0; //turn motor off
+	driveNipple(Printer2Delivery, -20, TransportMotor);
+	int power = 3;
+	driveDegree(30, -power, UnloadMotor);
+	wait1Msec(200);
+	driveDegree(30, power, UnloadMotor);
 }
 
 // Procedure called remotely by printer
@@ -88,33 +92,21 @@ void conveyor_move(int payload)
 
 const float Origin2Printer = 26.1;
 void moveToPrinterAndSendJob(int letter){
-		// move to printer
-		driveNipple(Origin2Printer, -20, TransportMotor);
-		// tell printer what should be done
-		sendMessageWithParm(PRINTER, PRINTER_PRINT, letter);
+	// move to printer
+	driveNipple(Origin2Printer, -20, TransportMotor);
+	// tell printer what should be done
+	sendMessageWithParm(PRINTER, PRINTER_PRINT, letter);
 }
 
 
 task main()
 {
+	clearInbox();
 	StartTask(listenToBluetooth);
-
 	moveToStock();
 
 
-
-	//driveNipple(Origin2Printer ,-20,TransportMotor);
-
-
-	//while(true){
-	//	if(SensorValue[touchSensor1] == 1){
-	//		unload(3);
-	//		//driveDistance(20, -30, motorB);
-	//	}
-	//	wait1Msec(1);
-	//}
-
-
 	while(true){wait10Msec(100);}
+	//unload();
 	return;
 }
