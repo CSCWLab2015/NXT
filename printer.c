@@ -209,8 +209,8 @@ void writeLetter(bool* letter)
 		}
 
 		if (letter[i]==1){
-			sendMessageWithParm(WEBSERVER, STT_PRINTING, i);
 			setBrick(4-i%5,0);
+			sendMessageWithParm(WEBSERVER, STT_PRINTING, i);
 			// Calibrate after each brick placement
 			moveToOrigin();
 		}
