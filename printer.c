@@ -72,44 +72,6 @@ bool brickInHead(){
 	}
 }
 
-// Plug the brick to the plate
-void plugInBrick(float down){
-	// loading
-	driveGear(down,15,LiftMotor, LiftGear);
-	wait1Msec(500);
-	driveGear(down,-30,LiftMotor, LiftGear);
-	wait1Msec(500);
-
-	driveNipple(5.2,30,MoveMotor);
-	bool have = haveBrick();
-	driveNipple(5.2,-30,MoveMotor);
-	if(!have){
-		sendMessageWithParm(WEBSERVER, ERR_BRICK_NOT_PLUGGED, 0);
-		// loading
-		driveGear(down,15,LiftMotor, LiftGear);
-		wait1Msec(500);
-		driveGear(down,-30,LiftMotor, LiftGear);
-		wait1Msec(500);
-		driveNipple(5.2,30,MoveMotor);
-		bool have = haveBrick();
-		if(!have){
-			// find another way
-		}
-		driveNipple(5.2,-30,MoveMotor);
-	}
-
-	// Try few times to make sure it is plugged in firmly
-	//driveGear(down,15,LiftMotor, LiftGear);
-	//float vibr = 1;
-	//int speed = 100;
-	//driveGear(vibr,-speed,LiftMotor, LiftGear);
-	//wait1Msec(50);
-	//driveGear(vibr,speed,LiftMotor, LiftGear);
-	//driveGear(vibr,-speed,LiftMotor, LiftGear);
-	//wait1Msec(50);
-	//driveGear(vibr,speed,LiftMotor, LiftGear);
-}
-
 void waitBeforeContinue(){
 	PlaySound(soundException);
 	PlaySound(soundException);
